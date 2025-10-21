@@ -103,7 +103,7 @@ void setup() {
 
 void loop()
 {
-  while (intentos > 0 || !pesoEsCorrecto) {
+  while (intentos > 0 || !puedeContinuar) {
   
   if (BotonMas.getSingleDebouncedPress()) {
       estaApagado = false; //devolver el flag de estaApagado a false para poder volver a enviar la señal de apagado. 
@@ -123,12 +123,17 @@ void loop()
 
             if (pesoCarrito < 200) { //Empezando haciendo pruebas con un valor ridiculamente alto
             pesoEsCorrecto = true;
+            puedeContinuar = true;
             intentos = 0;
             }
             else {
             intentos--;
             }
         haSidoPesado = true;                //Cambiar el estado de haSidoPesado a true
+            if (intentos == 0){
+            puedeContinuar = true;
+            pesoEsCorrecto = false;
+            }
       }
       digitalWrite(9, LOW);  //Encender el led indicador
       digitalWrite(10, HIGH);  
@@ -151,19 +156,19 @@ void loop()
       digitalWrite(8, HIGH);
   }
   }
-  if (pesoEsCorrecto == true) {
-    puedeContinuar = true;
+    Serial.println(pesoEsCorrecto);
+    
     Continuar();
-  }
   
 }
 
 void Continuar()
 {
-  while ( puedeContinuar == true) {
+  while (pesoEsCorrecto == true) {
     digitalWrite(10, HIGH);
+    delay(400);
   }
-   while ( puedeContinuar == false) {
+   while ( pesoEsCorrecto == false) {
     digitalWrite(9, HIGH);
   }
   // while (AdminReinicio == false)
