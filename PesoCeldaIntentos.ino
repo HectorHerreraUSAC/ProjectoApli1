@@ -17,8 +17,8 @@ bool estaEncendido = false; //Bool para el cambio de estado del módulo
 bool haSidoPesado = false;  //Bool para saber si el carrito has sido pesado
 bool pesoEsCorrecto = false;
 
-bool debeIntervenir = false;
 bool puedeContinuar = false;
+bool Reinicio = false;
 
 ////////////////////////////////////////////////////////////////////////////////PUSHBUTTON////////////////////////////////////////////////////////////////////////////////
 #include <Pushbutton.h>     //Incluir librería pushbutton
@@ -103,7 +103,12 @@ void setup() {
 
 void loop()
 {
-  while (intentos > 0 || !puedeContinuar) {
+  
+}
+
+void loop()
+{
+  while (intentos > 0) {
   
   if (BotonMas.getSingleDebouncedPress()) {
       estaApagado = false; //devolver el flag de estaApagado a false para poder volver a enviar la señal de apagado. 
@@ -120,20 +125,14 @@ void loop()
           Serial.print("El carrito ha sido pesado, el peso es de ");
           Serial.print(pesoCarrito, 2);     
           Serial.println(" gramos.");
-
             if (pesoCarrito < 200) { //Empezando haciendo pruebas con un valor ridiculamente alto
             pesoEsCorrecto = true;
-            puedeContinuar = true;
             intentos = 0;
             }
             else {
             intentos--;
             }
         haSidoPesado = true;                //Cambiar el estado de haSidoPesado a true
-            if (intentos == 0){
-            puedeContinuar = true;
-            pesoEsCorrecto = false;
-            }
       }
       digitalWrite(9, LOW);  //Encender el led indicador
       digitalWrite(10, HIGH);  
@@ -156,9 +155,8 @@ void loop()
       digitalWrite(8, HIGH);
   }
   }
-    Serial.println(pesoEsCorrecto);
-    
-    Continuar();
+
+  Continuar();
   
 }
 
@@ -167,21 +165,24 @@ void Continuar()
   while (pesoEsCorrecto == true) {
     digitalWrite(10, HIGH);
     delay(400);
+    digitalWrite(10, LOW);
+    delay(400);
   }
    while ( pesoEsCorrecto == false) {
     digitalWrite(9, HIGH);
+    delay(200);
+    digitalWrite(9, LOW);
+    delay(200);
   }
-  // while (AdminReinicio == false)
+  // while (!Reinicio)
   // {
-
   // digitalWrite(RelayAlarma, HIGH);
   // if (getSingleDebouncedRelease(pinLlave))
   //   {
-  //   AdminReinicio == true;
+  //   Reinicio = true;
+  //   intentos = 0;
   //   }
   // }
-  // intentos = 0;
-  // Pesar()
 }
 
 // void ejecutarBloque(int i) {
