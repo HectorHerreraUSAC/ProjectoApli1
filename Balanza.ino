@@ -173,10 +173,10 @@ void alarma()
   Serial.println("Iniciando medidas de seguridad.");
   while (!ApagarAlarma) {
     digitalWrite(LedRojo, HIGH);
-    digitalWrite(pinRelay, LOW);             //Cambia el estado del relay que enciende la luz estroboscopica
+    digitalWrite(pinRelay, LOW);              //Cambia el estado del relay que enciende la luz estroboscopica
       if (Llave.getSingleDebouncedPress()) {  //Si el interruptor de seguridad es presionado 1 vez
-      intentos = 3; //Reiniciar el contador para la cantidad de intentos
-      ApagarAlarma = true;
+      intentos = 3;                           //Reiniciar el contador para la cantidad de intentos
+      ApagarAlarma = true;                    //Se debe de devolver este flag para que el codigo vuelva a ejecutarse. 
       digitalWrite(LedVerde, HIGH);
       Serial.println("Una persona autorizada acaba de reiniciar el sistema. Usted ahora puede continuar con el programa.");
       }
