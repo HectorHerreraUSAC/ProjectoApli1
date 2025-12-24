@@ -40,6 +40,7 @@ bool ApagarAlarma = false;
 Pushbutton BotonMas(pinMas);      //Crear objeto pushbutton para avance
 //Pushbutton BotonMenos(pinMenos);//Crear objeto pushbutton para retroceso
 Pushbutton Llave(pinLlave);  //Crear objeto pushbutton para el switch con llave
+Pushbutton Tarjeta(pinTarjeta);
 
 int Indice = 0;             //Punto de partida para navegación
 int intentos = 3;           //Iniciar con 3 intentos para escanear correctamente el contenido
@@ -48,44 +49,44 @@ int intentos = 3;           //Iniciar con 3 intentos para escanear correctamente
 void setup() {
 
   Serial.begin(57600);                    //El puerto debe de ser inicializado a 57600 baudios para el modulo HX, de lo contrario no funciona
-  Serial.println("Initializing the scale"); 
+  Serial.println("Iniciando la balanza"); 
 
   scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
 
-  Serial.println("Before setting up the scale:");
+  Serial.println("Antes de calibrar la balanza:");
   Serial.print("read: \t\t");
-  Serial.println(scale.read());      // print a raw reading from the ADC
+  Serial.println(scale.read());                  //Lectura directa del modulo
 
   Serial.print("read average: \t\t");
-  Serial.println(scale.read_average(10));   // print the average of 20 readings from the ADC
+  Serial.println(scale.read_average(10));        //Promedio de 10 lecturas
 
   Serial.print("get value: \t\t");
-  Serial.println(scale.get_value(5));   // print the average of 5 readings from the ADC minus the tare weight (not set yet)
+  Serial.println(scale.get_value(5));            //Promedio de 5 lecturas
 
   Serial.print("get units: \t\t");
-  Serial.println(scale.get_units(5), 1);  // print the average of 5 readings from the ADC minus tare weight (not set) divided
-            // by the SCALE parameter (not set yet)
+  Serial.println(scale.get_units(5), 1);         //Promedio de 5 lecturas en unidades
             
-  scale.set_scale(-500.49); //obtenido de calibrar un peso de 400 gramos con la celda de 5kg.
-  // this value is obtained by calibrating the scale with known weights; see the README for details
-  scale.tare();               // reset the scale to 0
+  scale.set_scale(-500.49);                      //obtenido de calibrar un peso de 400 gramos con la celda de 5kg.
 
-  Serial.println("After setting up the scale:");
+  scale.tare();                                  //Tarar
+
+  Serial.println("Después de calibrar la balanza:");
 
   Serial.print("read: \t\t");
-  Serial.println(scale.read());                 // print a raw reading from the ADC
+  Serial.println(scale.read());                 //Lectura directa de la celda
 
   Serial.print("read average: \t\t");
-  Serial.println(scale.read_average(10));       // print the average of 20 readings from the ADC
+  Serial.println(scale.read_average(10));       //Promedio de 10 lecturas
 
   Serial.print("get value: \t\t");
-  Serial.println(scale.get_value(5));   // print the average of 5 readings from the ADC minus the tare weight, set with tare()
+  Serial.println(scale.get_value(5));           //Promedio de 5 lecturas
 
   Serial.print("get units: \t\t");
-  Serial.println(scale.get_units(5), 1);        //Imprime el promedio de 5 lecturas menos una vez tarado. Este valor deberia ser lo más cercano a 0.
+  Serial.println(scale.get_units(5), 1);        //Imprime el promedio de 5 lecturas  una vez tarado. Este valor deberia ser lo más cercano a 0.
 
-  Serial.println("Readings:");
+  
   //Declarar pines para leds indicadores
+  
   pinMode(LedAzul, OUTPUT);
   pinMode(LedRojo, OUTPUT);
   pinMode(LedVerde, OUTPUT);
@@ -110,7 +111,7 @@ void loop()
 
 void pesar()
 {
-  digitalWrite(pinRelay, HIGH);
+  digitalWrite(pinRelay, LOW);
   while (intentos > 0) {
   
   if (BotonMas.getSingleDebouncedPress()) {
@@ -128,7 +129,7 @@ void pesar()
           Serial.print("El carrito ha sido pesado, el peso es de ");
           Serial.print(pesoCarrito, 2);     
           Serial.println(" gramos.");
-            if (pesoCarrito < 200) {  //Empezando haciendo pruebas con un valor ridiculamente alto
+            if (pesoCarrito > pesoTeorico) {  //Empezando haciendo pruebas con un valor ridiculamente alto
             intentos = 0;             //Condición para salir del bucle
 //          pesoEsCorrecto = true;
             puedePagar = true;
@@ -162,10 +163,11 @@ void pesar()
   }
 
   estaApagado = false;
-
+  digitalWrite(pinRelay, LOW);
   digitalWrite(LedVerde, LOW);  //LED indicador
   digitalWrite(LedRojo, LOW);   //Apagar los Leds
   digitalWrite(LedAzul, LOW);
+
 }
 
 void alarma()
@@ -173,10 +175,11 @@ void alarma()
   Serial.println("Iniciando medidas de seguridad.");
   while (!ApagarAlarma) {
     digitalWrite(LedRojo, HIGH);
-    digitalWrite(pinRelay, LOW);              //Cambia el estado del relay que enciende la luz estroboscopica
+    digitalWrite(pinRelay, HIGH);              //Cambia el estado del relay que enciende la luz estroboscopica
       if (Llave.getSingleDebouncedPress()) {  //Si el interruptor de seguridad es presionado 1 vez
       intentos = 3;                           //Reiniciar el contador para la cantidad de intentos
       ApagarAlarma = true;                    //Se debe de devolver este flag para que el codigo vuelva a ejecutarse. 
+      //puedePagar = false;                     //Asegurarse que aún no pueda pagar
       digitalWrite(LedVerde, HIGH);
       Serial.println("Una persona autorizada acaba de reiniciar el sistema. Usted ahora puede continuar con el programa.");
       }
@@ -188,14 +191,21 @@ void alarma()
 
 void pagar()
 {
-   Serial.println("Ha llegado al final del programa.");
-  //Serial.println("Usted debe el monto de Q.xxx. Porfavor acerce su tarjeta al lector.");
+  digitalWrite(pinRelay, LOW);
+  if(puedePagar)
+  {
+    Serial.println("Por favor, acerce una tarjeta compatible al módulo de lectura.");
+  }
+
   while(puedePagar)
   {
-    // if(PinTarjeta == HIGH)
-    // {
-    //   Serial.print("Pago exitoso. Gracias por su compra!");
-    // }
+    if(Tarjeta.getSingleDebouncedPress())
+    {
+      Serial.print("Pago exitoso. Gracias por su compra!");
+      puedePagar = false;
+      intentos = 3;
+      delay(300);
+    }
    digitalWrite(LedAzul, HIGH);
   }
 }

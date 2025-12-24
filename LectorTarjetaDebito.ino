@@ -17,6 +17,7 @@ void setup() {
 	mfrc522.PCD_Init(); // Iniciamos  el MFRC522
 	Serial.println("Iniciando lector de tarjetas");
   pinMode(led, OUTPUT);
+  pinMode(3, OUTPUT);
 }
 
 void loop() {
@@ -24,6 +25,7 @@ void loop() {
  if ( mfrc522.PICC_IsNewCardPresent()) 
         {  
   		      digitalWrite(led, HIGH); //enviar señal al microcontrolador
+            digitalWrite(2, HIGH); //enviar señal al microcontrolador
             //Seleccionamos una tarjeta
             if ( mfrc522.PICC_ReadCardSerial()) 
             {
@@ -43,35 +45,7 @@ void loop() {
   else
   {
      digitalWrite(led, LOW); //enviar señal al microcontrolador
+     digitalWrite(2, LOW); //enviar señal al microcontrolador
   }	
 
-  // pesar();
- 
-  // Alarma();
-  
-  // Pagar();
 }
-
-// void pesar()
-// {
-//  while (intentos > 0) {
-//   statements
-//   }
-// }
-
-// void Alarma()
-// {
-// while (EncenderAlarma = true) {
-//   digitalWrite(RelayAlarma, HIGH);
-//   digitalWrite(Buzzer, HIGH);
-//     if (getSingleDebouncedPress()) {
-//     intentos = 0;
-//     EncenderAlarma = false;
-//     }
-//   }
-// }
-
-// void Pagar()
-// {
-
-// }
